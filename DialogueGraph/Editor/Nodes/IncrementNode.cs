@@ -9,8 +9,9 @@ using UnityEngine.UIElements;
 
 namespace DialogueGraph.Editor.Nodes
 {
-    internal class BranchNode : BaseNode
+    internal class IncrementNode : BaseNode
     {
+        public int Amount = 0;
         public string SelectedName;
 
         private PopupField<string> _dropdown;
@@ -19,7 +20,7 @@ namespace DialogueGraph.Editor.Nodes
         {
             base.Initialize(position, graphView, guid);
             SetPosition(new Rect(position, Vector2.zero));
-            Type = DialogueType.Branch;
+            Type = DialogueType.Increment;
             mainContainer.AddToClassList("ds-node-main-container");
             extensionContainer.AddToClassList("ds-node-extension-container");
         }
@@ -40,35 +41,40 @@ namespace DialogueGraph.Editor.Nodes
 
         public override void Draw()
         {
-            TextField nodeName = EditorElementHelper.CreateTextField("Branch", isReadOnly: true);
+            // Title
+            TextField nodeName = EditorElementHelper.CreateTextField("Increment", isReadOnly: true);
             nodeName.AddClasses("ds-node-textfield", "ds-node-textfield-filename", "ds-node-textfield-hidden");
             titleContainer.Insert(0, nodeName);
 
-            VisualElement dataContainor = new VisualElement();
-            dataContainor.AddClasses("ds-node-data-container");
+            VisualElement dataContainer = new VisualElement();
+            dataContainer.AddClasses("ds-node-data-container");
 
-            if (string.IsNullOrEmpty(SelectedName)) SelectedName = _graphView.ExposedProperties.Where(e => e.Type == "Bool").Select(e => e.Name).FirstOrDefault();
-            _dropdown = EditorElementHelper.CreateDropdown<string>("Variable", SelectedName, _graphView.ExposedProperties.Where(e => e.Type == "Bool").Select(e => e.Name).ToList(), evt =>
-            {
-                SelectedName = evt.newValue;
-                ExposedProperty selectedField = _graphView.ExposedProperties.Find(f => f.Name == SelectedName);
-                userData = selectedField;
-            });
+            if (string.IsNullOrEmpty(SelectedName))
+                SelectedName = _graphView.ExposedProperties.Where(e => e.Type == "Int").Select(e => e.Name).FirstOrDefault();
+
+            _dropdown = EditorElementHelper.CreateDropdown<string>("Variable", SelectedName, _graphView.ExposedProperties.Where(e => e.Type == "Int").Select(e => e.Name).ToList(), evt =>
+                {
+                    SelectedName = evt.newValue;
+                    ExposedProperty selectedField = _graphView.ExposedProperties.Find(f => f.Name == SelectedName);
+                    userData = selectedField;
+                }
+             );
             SelectedName = _dropdown.value;
             _dropdown.AddClasses("ds-node-textfield", "ds-node-textfield-filename", "ds-node-textfield-hidden");
-            dataContainor.Add(_dropdown);
+            dataContainer.Add(_dropdown);
 
-            mainContainer.Add(dataContainor);
+            IntegerField incrementField = EditorElementHelper.CreateIntegerField("Amount", Amount, evt => Amount = evt.newValue);
+            dataContainer.Add(incrementField);
 
-            // Input
+            mainContainer.Add(dataContainer);
+
+            // Input port
             Port inputPort = this.CreatePort("From", direction: Direction.Input, capacity: Port.Capacity.Multi);
             inputContainer.Add(inputPort);
 
-            // Output
-            Port falseOutputPort = this.CreatePort("False", direction: Direction.Output, capacity: Port.Capacity.Single);
-            Port trueOutputPort = this.CreatePort("True", direction: Direction.Output, capacity: Port.Capacity.Single);
-            outputContainer.Add(falseOutputPort);
-            outputContainer.Add(trueOutputPort);
+            // Output port
+            Port outputPort = this.CreatePort("To", direction: Direction.Output, capacity: Port.Capacity.Single);
+            outputContainer.Add(outputPort);
 
             RefreshExpandedState();
         }

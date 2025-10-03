@@ -1,25 +1,30 @@
 using DialogueGraph.Editor.Views;
 using DialogueGraph.Enumeration;
 using DialogueGraph.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace DialogueGraph.Editor.Nodes
 {
-    internal class BranchNode : BaseNode
+    internal class ComparatorNode : BaseNode
     {
         public string SelectedName;
+        public int Condition;
+        public ComparisonType ComparisonType;
 
         private PopupField<string> _dropdown;
+        private PopupField<string> _comparsionDropDown;
 
         public override void Initialize(Vector2 position, DialogueGraphView graphView, string guid = null)
         {
             base.Initialize(position, graphView, guid);
             SetPosition(new Rect(position, Vector2.zero));
-            Type = DialogueType.Branch;
+            Type = DialogueType.Comparator;
             mainContainer.AddToClassList("ds-node-main-container");
             extensionContainer.AddToClassList("ds-node-extension-container");
         }
@@ -40,15 +45,15 @@ namespace DialogueGraph.Editor.Nodes
 
         public override void Draw()
         {
-            TextField nodeName = EditorElementHelper.CreateTextField("Branch", isReadOnly: true);
+            TextField nodeName = EditorElementHelper.CreateTextField("Comparator", isReadOnly: true);
             nodeName.AddClasses("ds-node-textfield", "ds-node-textfield-filename", "ds-node-textfield-hidden");
             titleContainer.Insert(0, nodeName);
 
             VisualElement dataContainor = new VisualElement();
             dataContainor.AddClasses("ds-node-data-container");
 
-            if (string.IsNullOrEmpty(SelectedName)) SelectedName = _graphView.ExposedProperties.Where(e => e.Type == "Bool").Select(e => e.Name).FirstOrDefault();
-            _dropdown = EditorElementHelper.CreateDropdown<string>("Variable", SelectedName, _graphView.ExposedProperties.Where(e => e.Type == "Bool").Select(e => e.Name).ToList(), evt =>
+            if (string.IsNullOrEmpty(SelectedName)) SelectedName = _graphView.ExposedProperties.Where(e => e.Type == "Int").Select(e => e.Name).FirstOrDefault();
+            _dropdown = EditorElementHelper.CreateDropdown<string>("Variable", SelectedName, _graphView.ExposedProperties.Where(e => e.Type == "Int").Select(e => e.Name).ToList(), evt =>
             {
                 SelectedName = evt.newValue;
                 ExposedProperty selectedField = _graphView.ExposedProperties.Find(f => f.Name == SelectedName);
@@ -57,6 +62,18 @@ namespace DialogueGraph.Editor.Nodes
             SelectedName = _dropdown.value;
             _dropdown.AddClasses("ds-node-textfield", "ds-node-textfield-filename", "ds-node-textfield-hidden");
             dataContainor.Add(_dropdown);
+
+
+            _comparsionDropDown = EditorElementHelper.CreateDropdown<string>("Comparison", ComparisonType.ToString(), Enum.GetNames(typeof(ComparisonType)).ToList(), evt =>
+            {
+                ComparisonType = (ComparisonType)Enum.Parse(typeof(ComparisonType), evt.newValue);
+            });
+            ComparisonType = (ComparisonType)Enum.Parse(typeof(ComparisonType), _comparsionDropDown.value);
+            _comparsionDropDown.AddClasses("ds-node-textfield", "ds-node-textfield-filename", "ds-node-textfield-hidden");
+            dataContainor.Add(_comparsionDropDown);
+
+            IntegerField incrementField = EditorElementHelper.CreateIntegerField("Condition", Condition, evt => Condition = evt.newValue);
+            dataContainor.Add(incrementField);
 
             mainContainer.Add(dataContainor);
 

@@ -9,8 +9,9 @@ using UnityEngine.UIElements;
 
 namespace DialogueGraph.Editor.Nodes
 {
-    internal class BranchNode : BaseNode
+    internal class SetBooleanNode : BaseNode
     {
+        public bool Value = false;
         public string SelectedName;
 
         private PopupField<string> _dropdown;
@@ -19,7 +20,7 @@ namespace DialogueGraph.Editor.Nodes
         {
             base.Initialize(position, graphView, guid);
             SetPosition(new Rect(position, Vector2.zero));
-            Type = DialogueType.Branch;
+            Type = DialogueType.SetBoolean;
             mainContainer.AddToClassList("ds-node-main-container");
             extensionContainer.AddToClassList("ds-node-extension-container");
         }
@@ -40,7 +41,7 @@ namespace DialogueGraph.Editor.Nodes
 
         public override void Draw()
         {
-            TextField nodeName = EditorElementHelper.CreateTextField("Branch", isReadOnly: true);
+            TextField nodeName = EditorElementHelper.CreateTextField("Set Boolean", isReadOnly: true);
             nodeName.AddClasses("ds-node-textfield", "ds-node-textfield-filename", "ds-node-textfield-hidden");
             titleContainer.Insert(0, nodeName);
 
@@ -58,6 +59,9 @@ namespace DialogueGraph.Editor.Nodes
             _dropdown.AddClasses("ds-node-textfield", "ds-node-textfield-filename", "ds-node-textfield-hidden");
             dataContainor.Add(_dropdown);
 
+            Toggle toggle = EditorElementHelper.CreateToggle("Value", Value, evt => Value = evt.newValue);
+            dataContainor.Add(toggle);
+
             mainContainer.Add(dataContainor);
 
             // Input
@@ -65,10 +69,8 @@ namespace DialogueGraph.Editor.Nodes
             inputContainer.Add(inputPort);
 
             // Output
-            Port falseOutputPort = this.CreatePort("False", direction: Direction.Output, capacity: Port.Capacity.Single);
-            Port trueOutputPort = this.CreatePort("True", direction: Direction.Output, capacity: Port.Capacity.Single);
-            outputContainer.Add(falseOutputPort);
-            outputContainer.Add(trueOutputPort);
+            Port outputPort = this.CreatePort("To", direction: Direction.Output, capacity: Port.Capacity.Single);
+            outputContainer.Add(outputPort);
 
             RefreshExpandedState();
         }

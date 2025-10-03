@@ -1,31 +1,22 @@
 using DialogueGraph.Editor.Views;
 using DialogueGraph.Enumeration;
 using DialogueGraph.Utilities;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace DialogueGraph.Editor.Nodes
 {
-    internal abstract class DialogueNode : BaseNode
+    internal class EmitEventNode : BaseNode
     {
-        public string ActorName { get; set; }
-        public List<string> Choices { get; set; }
-        public string Text { get; set; }
         public string EventID { get; set; }
 
         public override void Initialize(Vector2 position, DialogueGraphView graphView, string guid = null)
         {
             base.Initialize(position, graphView, guid);
-
-            if (Choices == null) Choices = new List<string>();
-
             SetPosition(new Rect(position, Vector2.zero));
-
+            Type = DialogueType.EmitEvent;
             mainContainer.AddToClassList("ds-node-main-container");
             extensionContainer.AddToClassList("ds-node-extension-container");
         }
@@ -33,13 +24,9 @@ namespace DialogueGraph.Editor.Nodes
         public override void Draw()
         {
             // Title 
-            TextField dialogueTF = EditorElementHelper.CreateTextField(ActorName, onValueChanged: val => ActorName = val.newValue);
+            TextField dialogueTF = EditorElementHelper.CreateTextField("Emit Event", isReadOnly: true);
             dialogueTF.AddClasses("ds-node-textfield", "ds-node-textfield-filename", "ds-node-textfield-hidden");
             titleContainer.Insert(0, dialogueTF);
-
-            // Input
-            Port inputPort = this.CreatePort("From", direction: Direction.Input, capacity: Port.Capacity.Multi);
-            inputContainer.Add(inputPort);
 
             // Data
             VisualElement mainDataContainor = new VisualElement();
@@ -49,18 +36,15 @@ namespace DialogueGraph.Editor.Nodes
             eventTextField.AddClasses("ds-node-textfield", "ds-node-quote-textfield");
 
             mainDataContainor.Add(eventTextField);
-            extensionContainer.Add(mainDataContainor);
+            mainContainer.Add(mainDataContainor);
 
-            VisualElement dataContainor = new VisualElement();
-            dataContainor.AddClasses("ds-node-data-container");
+            // Input
+            Port inputPort = this.CreatePort("From", direction: Direction.Input, capacity: Port.Capacity.Multi);
+            inputContainer.Add(inputPort);
 
-            Foldout textFoldout = EditorElementHelper.CreateFoldout("Dialogue Test");
-            TextField textTextField = EditorElementHelper.CreateTextField(Text, multiline: true, onValueChanged: val => Text = val.newValue);
-            textTextField.AddClasses("ds-node-textfield", "ds-node-choice-textfield", "ds-node-textfield-hidden");
-
-            textFoldout.Add(textTextField);
-            dataContainor.Add(textFoldout);
-            mainContainer.Add(dataContainor);
+            //Output
+            Port outputPort = this.CreatePort("From", direction: Direction.Output, capacity: Port.Capacity.Single);
+            outputContainer.Add(outputPort);
         }
     }
 }

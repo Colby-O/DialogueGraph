@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace DialogueGraph.Editor.Nodes
+namespace DialogueGraph.Attribute
 {
-    internal sealed class EventNode : BaseNode
+    public class ReadOnlyAttribute : PropertyAttribute
     {
 
     }
